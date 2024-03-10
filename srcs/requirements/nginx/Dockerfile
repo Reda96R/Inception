@@ -1,4 +1,12 @@
 FROM debian:bullseye
 RUN apt -y update && apt -y install nginx && apt -y install openssl
+RUN apt -y install vim
+#::::::::::::::::::::::::::::::::::SSL cert:::::::::::::::::::::::::::
 RUN mkdir -p /etc/nginx/ssl
-RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=MA/ST=MA/L=Benguerir/O=42/OU=1337/CN=rerayyad.42.fr/UID=rerayyad" 
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/certificate.crt -keyout /etc/nginx/ssl/private.key -subj "/C=MA/ST=MA/L=Benguerir/O=42/OU=1337/CN=rerayyad.42.fr/UID=rerayyad" 
+
+#::::::::::::::::::::::::::::::::::Config:::::::::::::::::::::::::::
+COPY conf/default.conf /etc/nginx/sites-available/default
+# EXPOSE 808
+
+# CMD ["nginx", "-g", "daemon off;"]
