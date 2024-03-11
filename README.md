@@ -16,11 +16,10 @@
 2. [Background Theory](#background-theory)
    1. [Containerization](#containerization)
    2. [Docker](#docker)
-	   1. [How does Docker work](### how-does-docker-work) 
-   3. [OSI](#osi)
-3. [Subnetting](#subnetting)
-   1. [IP Address](#ip-address)
-   2. [Making a Subnet](#making-a-subnet)
+	   1. [How does Docker work](###how-does-docker-work)
+3. [Making the project](#making-the-project)
+   1. [Making the Containers](#making-the-containers)
+	   1. [Nginx](###nginx)
 4. [Acknowledgement](#acknowledgement)
 5. [Resources](#resources)
 
@@ -40,9 +39,261 @@ There are many containerization thechnologies out there such as **[Podman](https
 ![kubernetes](https://media.licdn.com/dms/image/D4E10AQHEc7bZebbfOQ/image-shrink_800/0/1699883119851?e=2147483647&v=beta&t=VyjRBnpwpnmxbDL78gI7BiGfl57hTrn-tDBd4yuoq-8)
 ## Docker:
 > Wikipedia: **Docker** is a set of [platform as a service](https://en.wikipedia.org/wiki/Platform_as_a_service "Platform as a service") (PaaS) products that use [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_virtualization "OS-level virtualization") to deliver software in packages called _[containers](https://en.wikipedia.org/wiki/Container_(virtualization) "Container (virtualization)")_.[[4]](https://en.wikipedia.org/wiki/Docker_(software)#cite_note-SYS-CON_Media-4) The service has both free and premium tiers. The software that hosts the containers is called **Docker Engine**.[[5]](https://en.wikipedia.org/wiki/Docker_(software)#cite_note-what-is-a-container-5) It was first released in 2013 and is developed by [Docker, Inc](https://en.wikipedia.org/wiki/Docker,_Inc. "Docker, Inc.")
-### How does Docker work?
-Docker is basically running on top of a host machine, and it is sharing the kernel of that machine with the containers, providing isolated processes in their own user space
+### How does Docker work:
+Docker is basically running on top of a host machine, and it is sharing the kernel of that machine with the containers, providing isolated processes in their own user space.
 
+You might notice something weird here, if we need an isolated environment with a separate Os from the Host's, why on earth would we chose a dang container over a something that we already know, which is virtualization?
+### Containerization vs Virtualization:
+We had a glimps on virtualization in a previous [project](https://github.com/Reda96R/Born2beroot), and we saw how we can create a totally separate environment using a virtual machine, but why using a container, in order to spot the difference between those two, let's have a look on how each one of them work,
+
+# Making the project:
+The Project consists of mainly three parts, the first being the making of each of the services's container, then we need to make the volumes for these services, and the last step is to make a docker network to establish a connection between our services, the following diagram represents the intended project structure,
+
+//Diagram
+
+Now it is time to start making our Docker containers.
+## Making the Containers:
+![Inception](https://drivendata.co/images/one-container-is-not-enough.jpg)
+In order to create our container, we need a Docker image, this is simply a blueprint for Docker containers, They contain everything needed to run a container and the instructions for creating one, including the application code, runtime, libraries, dependencies, and system tools, where can we find this docker image? you might ask, I have two answers for this question, the first being [Docker Hub](https://hub.docker.com/), which is a cloud registry service, from which users can deploy containers and test and share images, a sort of an image store like app store for example, where we can find images for a lot of different containers, the second is **Dockerfile** which is text file containing instructions for building the image, It specifies the base image, sets the working directory, copies files into the image, installs dependencies, and defines the command to run when the container starts, and this makes the images typically layered, meaning each instruction in the Dockerfile creates a new layer in the image. This makes images lightweight and easy to share and distribute, in our project we're going to rely on Dockerfiles to create our own images.
+Here's a simple example of a Dockerfile for a Python web application using Flask:
+```
+# Use an official Python runtime as the base image
+FROM python:3.8-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install any needed dependencies specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 5000 available to the world outside this container
+EXPOSE 5000
+
+# Define environment variable
+ENV NAME World
+
+# Run app.py when the container launches
+CMD ["python", "app.py"]
+```
+
+To keep things simple and focused on getting started, I won't delve into the details of each Dockerfile command. If you're curious about the commands used in the Dockerfile, you can find comprehensive documentation and tutorials on the Docker [website](https://docs.docker.com/reference/dockerfile/). This will provide you with a deeper understanding of how Dockerfiles work and how to customize them for your specific needs.
+### Nginx:
+**[NGINX](https://www.nginx.com/)** is a popular web server software that is used to serve web pages and applications over the internet. It's known for its high performance, stability, and scalability, think of it as a traffic cop directing vehicles on a busy intersection. Just as the traffic cop efficiently manages the flow of cars, NGINX efficiently manages the flow of internet traffic to websites and applications. It ensures that incoming requests are directed to the appropriate destination, balances the load evenly across multiple servers, and helps optimize the performance of web services, much like how a traffic cop keeps traffic moving smoothly and prevents congestion, you check this [tutorial](https://www.hostinger.com/tutorials/what-is-nginx) to get you around Nginx and how it works.
+let's create the Dockerfile for out Nginx container, first we need to build our container on top of the penultimate stable version of Alpine or Debian, I'm just gonna go with Debian, and since the latest version of Debian as of time writing this article is Debian 12 (bookworm), we are going to install Debian 11 (bullseye),
+```dockerfile
+FROM debian:bullseye
+```
+the `FROM` instruction is typically the first instruction in a Dockerfile, It specifies the base image that will be used to build the new image, which in our case the image of Debian,
+>Docker will first check if it has the `debian:bullseye` image locally. If it doesn't find it locally, Docker will then attempt to pull the `debian:bullseye` image from the Docker Hub registry. and this is the only exception where we're allowed to utilize the Docker hub.
+
+After setting up the base image, now we need to install the tools that we need and to do that we're going to use `RUN` which is used to execute commands during the build process of the Docker image,
+```dockerfile
+FROM debian:bullseye
+RUN apt -y update && apt -y install vim && apt -y install curl
+RUN apt -y install nginx && apt -y install openssl
+```
+>We need Openssl in order to configure our Nginx server with TLSv1.2 or TLSv1.3
+
+At this point, we can already run our container by running `docker build -t nginx .` in the same directory as our Dockerfile, this will build our image, then type `docker run -it nginx` to run, and we will be prompted by the terminal of the system inside of the container. 
+The next thing we need to do is to create our SSL certification which is in short a digital certificate that authenticates a website’s identity and enables an encrypted connection between the client(browser) and the server(in our case Nginx), I highly recommend you to go visit this [guide](https://blog.hubspot.com/marketing/what-is-ssl) to know more,
+
+```dockerfile
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/certificate.crt -keyout /etc/nginx/ssl/private.key -subj "/C=MA/ST=MA/L=Benguerir/O=42/OU=1337/CN=rerayyad.42.fr/UID=rerayyad"
+```
+I know this looks ugly, but don't worry I'm gonna explain everything,
+- `openssl`: This is the command-line tool for OpenSSL, a cryptographic toolkit.
+    
+- `req`: This subcommand of OpenSSL is used to process certificate requests.
+    
+- `-x509`: This option tells OpenSSL to generate a self-signed certificate instead of a certificate request.
+    
+- `-nodes`: This option tells OpenSSL to create a certificate without encrypting the private key with a passphrase. This is useful so we don't have to manually enter a passphrase.
+    
+- `-out /etc/nginx/ssl/certificate.crt`: This specifies the path and filename of the output file where the SSL certificate will be saved. In this case, it's saving the certificate to `/etc/nginx/ssl/certificate.crt` within the Docker image.
+    
+- `-keyout /etc/nginx/ssl/private.key`: This specifies the path and filename of the output file where the private key will be saved. In this case, it's saving the private key to `/etc/nginx/ssl/private.key` within the Docker image.
+    
+- `-subj "/C=MA/ST=MA/L=Benguerir/O=42/OU=1337/CN=rerayyad.42.fr/UID=rerayyad"`: This specifies the subject of the certificate, which includes various pieces of information like the country (C), state (ST), location (L), organization (O), organizational unit (OU), common name (CN), and user ID (UID). These are often used for identifying the entity that the certificate represents.
+So, altogether, this `RUN` instruction generates a self-signed SSL certificate and private key with the specified subject and saves them to the `/etc/nginx/ssl/` directory within the Docker image. These files can then be used to configure our Nginx to serve HTTPS traffic with SSL encryption.
+I forgot to create the directory where we'll save our key and certificate, so before generating them we simply gonna create `/etc/nginx/ssl`, and our Dockerfile will be like this:
+```dockerfile
+FROM debian:bullseye
+RUN apt -y update && apt -y install vim && apt -y install curl
+RUN apt -y install nginx && apt -y install openssl
+
+RUN mkdir -p /etc/nginx/ssl
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/certificate.crt -keyout /etc/nginx/ssl/private.key -subj "/C=MA/ST=MA/L=Benguerir/O=42/OU=1337/CN=rerayyad.42.fr/UID=rerayyad"
+```
+
+Now that we have our certificate, it is time to configure Nginx to use this certificate and serve Https traffic.
+to configure Nginx we need to modify `/etc/nginx/nginx.conf`, so let's go had and have a look at it,
+```bash
+user       www www;  ## Default: nobody
+worker_processes  5;  ## Default: 1
+error_log  logs/error.log;
+pid        logs/nginx.pid;
+worker_rlimit_nofile 8192;
+
+events {
+  worker_connections  4096;  ## Default: 1024
+}
+
+http {
+  include    conf/mime.types;
+  include    /etc/nginx/proxy.conf;
+  include    /etc/nginx/fastcgi.conf;
+  index    index.html index.htm index.php;
+
+  default_type application/octet-stream;
+  log_format   main '$remote_addr - $remote_user [$time_local]  $status '
+    '"$request" $body_bytes_sent "$http_referer" '
+    '"$http_user_agent" "$http_x_forwarded_for"';
+  access_log   logs/access.log  main;
+  sendfile     on;
+  tcp_nopush   on;
+  server_names_hash_bucket_size 128; # this seems to be required for some vhosts
+
+  server { # php/fastcgi
+    listen       80;
+    server_name  domain1.com www.domain1.com;
+    access_log   logs/domain1.access.log  main;
+    root         html;
+
+    location ~ \.php$ {
+      fastcgi_pass   127.0.0.1:1025;
+    }
+  }
+
+  server { # simple reverse-proxy
+    listen       80;
+    server_name  domain2.com www.domain2.com;
+    access_log   logs/domain2.access.log  main;
+
+    # serve static files
+    location ~ ^/(images|javascript|js|css|flash|media|static)/  {
+      root    /var/www/virtual/big.server.com/htdocs;
+      expires 30d;
+    }
+
+    # pass requests for dynamic content to rails/turbogears/zope, et al
+    location / {
+      proxy_pass      http://127.0.0.1:8080;
+    }
+  }
+
+  upstream big_server_com {
+    server 127.0.0.3:8000 weight=5;
+    server 127.0.0.3:8001 weight=5;
+    server 192.168.0.1:8000;
+    server 192.168.0.1:8001;
+  }
+
+  server { # simple load balancing
+    listen          80;
+    server_name     big.server.com;
+    access_log      logs/big.server.access.log main;
+
+    location / {
+      proxy_pass      http://big_server_com;
+    }
+  }
+}
+```
+![config](https://media.giphy.com/media/3XR0chfiSTtAI/giphy.gif?cid=ecf05e4729m6fkxl3g0z6igc2i2huwne6au5t21zaoq6f3rn&ep=v1_gifs_search&rid=giphy.gif&ct=g)
+**WHAT ON EARTH IS THIS?!**
+This was my reaction when I first opened that file, but don't worry I got your back ;),
+forget about everything up there, I want you to focus on this:
+```bash
+listen       80;
+```
+here we have a sort of a **Key** (listen) and a **Value** (80), if you notice, this pattern get repeated in many parts of that file, for example in ```
+```bash
+server_name     big.server.com;
+```
+these pairs of values and keys are called **Directives**,
+you might also notice that there are blocks of code limited by curly braces,
+```bash
+events {
+  worker_connections  4096;  ## Default: 1024
+}
+```
+these are known as **Contexts**, and within contexts we can find directives like the example above, If you need to go deeper in Nginx I suggest watching [this crash course](https://www.youtube.com/watch?v=7VAI73roXaY) to get you on the road. To continue our work, let's configure our server,
+```bash
+server {
+    listen              443 **ssl**;
+    server_name         www.example.com;
+    ssl_certificate     **www.example.com.crt**;
+    ssl_certificate_key **www.example.com.key**;
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+    ...
+}
+```
+we're going to build upon the [example](http://nginx.org/en/docs/http/configuring_https_servers.html) provided by Nginx on how to configure Https servers.
+as we see in `listen    443 **ssl**;`, we are telling our telling our server to listen on the 433 port which is for Https connections, next we'll focus on those three lines
+```bash
+ssl_certificate     **www.example.com.crt**;
+ssl_certificate_key **www.example.com.key**;
+ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+```
+here we simply specify the paths to the certificate and the key, that we already generated,
+after that we specify the protocols that we're going to use, which in our case should be TLSv1.2 and TLSv1.3, let's adapt this config on our needs
+```bash
+server {
+    listen              443 ssl;
+    ssl_certificate     etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key etc/nginx/ssl/private.key;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+}
+```
+next we need to add informations about our files and server name,
+```bash
+server {
+    listen              443 ssl;
+    ssl_certificate     etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key etc/nginx/ssl/private.key;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+}
+```
+- `root /var/www/html` This sets the root directory for serving files for this server block. In this case, it's set to `/var/www/html`, which is a common location for serving static files on NGINX.
+> We're gonna change the root later to `/var/www/wordpress`, also `server_name _;` to `server_name login.42.fr;`
+
+- `index index.html index.htm index.nginx-debian.html;`: This directive specifies the default files to serve when a directory is requested. NGINX will look for these files in the specified `root` directory and serve the first one it finds.
+- `server_name _;`: here we specify the server's hostname. The underscore `_` is a wildcard that matches any hostname. This means that this server block will respond to requests for any hostname.
+- - `location / { ... }`: This block defines a location directive that matches requests for the root URL (`/`). Inside this block:
+    - `try_files $uri $uri/ =404;`: This directive tells NGINX to try serving the requested URL (`$uri`). If the URL doesn't match an existing file, it will try appending a slash to the URL and look for a directory. If that fails as well, it will return a 404 Not Found error.
+right now we are pretty much done, we still have some tweaks to do, but we'll see that later,
+the task now is to place this configuration in a file inside `/etc/nginx/sites-available` then we would symlink from `/etc/nginx/sites-available/` to `/etc/nginx/sites-enabled/` to activate the configuration,
+> Configurations placed in `sites-available` are considered available but not actively used by Nginx until they are symlinked from `sites-enabled`. This separation allows for better organization and management of Nginx configurations, especially in scenarios where we might have multiple sites or applications to manage.
+
+Coming back to our Dockerfile, we will copy the config file to  `/sites-available` and then symlink to `/sites-enabled`,
+```dockerfile
+FROM debian:bullseye
+RUN apt -y update && apt -y install vim && apt -y install curl
+RUN apt -y install nginx && apt -y install openssl
+
+RUN mkdir -p /etc/nginx/ssl
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/certificate.crt -keyout /etc/nginx/ssl/private.key -subj "/C=MA/ST=MA/L=Benguerir/O=42/OU=1337/CN=rerayyad.42.fr/UID=rerayyad"
+
+COPY conf rerayyad.conf /etc/nginx/sites-avilable/rerayyad.conf
+RUN ln -s /etc/nginx/sites-available/rerayyad.conf /etc/sites-enabled/
+
+CMD [ "nginx", "-g", "daemon off;" ]
+```
+>We can add `EXPOSE 443`, which will expose port 443, but we can ignore it if we add the `-p` the moment of running the container, check [this](https://stackoverflow.com/questions/22111060/what-is-the-difference-between-expose-and-publish-in-docker) to understand ;)
+
+We added `CMD [ "nginx", "-g", "daemon off;" ]` which will start Nginx and tells it to run in the foreground and not to daemonize.
 # Acknowledgement:
 <p align="right">(<a href="#top">back to top</a>)</p>
+
 
