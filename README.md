@@ -203,6 +203,7 @@ http {
 }
 ```
 ![config](https://media.giphy.com/media/3XR0chfiSTtAI/giphy.gif?cid=ecf05e4729m6fkxl3g0z6igc2i2huwne6au5t21zaoq6f3rn&ep=v1_gifs_search&rid=giphy.gif&ct=g)
+
 **WHAT ON EARTH IS THIS?!**
 This was my reaction when I first opened that file, but don't worry I got your back ;),
 forget about everything up there, I want you to focus on this:
@@ -293,6 +294,141 @@ CMD [ "nginx", "-g", "daemon off;" ]
 >We can add `EXPOSE 443`, which will expose port 443, but we can ignore it if we add the `-p` the moment of running the container, check [this](https://stackoverflow.com/questions/22111060/what-is-the-difference-between-expose-and-publish-in-docker) to understand ;)
 
 We added `CMD [ "nginx", "-g", "daemon off;" ]` which will start Nginx and tells it to run in the foreground and not to daemonize.
+### MariaDB:
+It is time now to setup our data base container, on for that we're going to use **[MariaDB](https://mariadb.org/)**
+which is a an enhanced drop-in replacement open source version of the MySQL relational database management system.
+>**Relational** database is a collection of information that organizes data in predefined relationships where data is stored in one or more tables (or "relations") of columns(attributes) and rows(entries), making it easy to see and understand how different data structures relate to each other, **Non-Relational** databases, on the other hand, store data in a more flexible and dynamic way, often using formats like JSON or key-value pairs. They are also known as NoSQL databases. Non-relational databases are useful when dealing with unstructured or semi-structured data, and they can handle large volumes of data with high velocity.
+
+Let's write start with our Dockerfile,
+```dockerfile
+FROM debian:bullseye
+RUN apt update -y && apt upgrade -y
+RUN apt install -y mariadb-server
+
+```
+next we have two major steps, the first is to configure our Mariadb, the second is to set up a database and create a database user, let's start by the configuration.
+
+this is the base configuration file:
+```bash
+#
+# These groups are read by MariaDB server.
+# Use it for options that only the server (but not clients) should see
+
+# this is read by the standalone daemon and embedded servers
+[server]
+
+# this is only for the mysqld standalone daemon
+[mysqld]
+
+#
+# * Basic Settings
+#
+
+user                    = mysql
+pid-file                = /run/mysqld/mysqld.pid
+basedir                 = /usr
+datadir                 = /var/lib/mysql
+tmpdir                  = /tmp
+lc-messages-dir         = /usr/share/mysql
+lc-messages             = en_US
+skip-external-locking
+
+# Broken reverse DNS slows down connections considerably and name resolve is
+# safe to skip if there are no "host by domain name" access grants
+#skip-name-resolve
+
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+bind-address            = 127.0.0.1
+
+#
+# * Fine Tuning
+#
+
+#key_buffer_size        = 128M
+#max_allowed_packet     = 1G
+#thread_stack           = 192K
+#thread_cache_size      = 8
+# This replaces the startup script and checks MyISAM tables if needed
+# the first time they are touched
+#myisam_recover_options = BACKUP
+#max_connections        = 100
+#table_cache            = 64
+
+#
+# * Logging and Replication
+#
+
+# Both location gets rotated by the cronjob.
+# Be aware that this log type is a performance killer.
+# Recommend only changing this at runtime for short testing periods if needed!
+#general_log_file       = /var/log/mysql/mysql.log
+#general_log            = 1
+
+# When running under systemd, error logging goes via stdout/stderr to journald
+# and when running legacy init error logging goes to syslog due to
+# /etc/mysql/conf.d/mariadb.conf.d/50-mysqld_safe.cnf
+# Enable this if you want to have error logging into a separate file
+#log_error = /var/log/mysql/error.log
+# Enable the slow query log to see queries with especially long duration
+#slow_query_log_file    = /var/log/mysql/mariadb-slow.log
+#long_query_time        = 10
+#log_slow_verbosity     = query_plan,explain
+#log-queries-not-using-indexes
+#min_examined_row_limit = 1000
+
+# The following can be used as easy to replay backup logs or for replication.
+# note: if you are setting up a replication slave, see README.Debian about
+#       other settings you may need to change.
+#server-id              = 1
+#log_bin                = /var/log/mysql/mysql-bin.log
+expire_logs_days        = 10
+#max_binlog_size        = 100M
+
+#
+# * SSL/TLS
+#
+
+# For documentation, please read
+# https://mariadb.com/kb/en/securing-connections-for-client-and-server/
+#ssl-ca = /etc/mysql/cacert.pem
+#ssl-cert = /etc/mysql/server-cert.pem
+#ssl-key = /etc/mysql/server-key.pem
+#require-secure-transport = on
+
+#
+# * Character sets
+#
+
+# MySQL/MariaDB default is Latin1, but in Debian we rather default to the full
+# utf8 4-byte character set. See also client.cnf
+character-set-server  = utf8mb4
+collation-server      = utf8mb4_general_ci
+
+#
+# * InnoDB
+#
+
+# InnoDB is enabled by default with a 10MB datafile in /var/lib/mysql/.
+# Read the manual for more InnoDB related options. There are many!
+# Most important is to give InnoDB 80 % of the system RAM for buffer use:
+# https://mariadb.com/kb/en/innodb-system-variables/#innodb_buffer_pool_size
+#innodb_buffer_pool_size = 8G
+
+# this is only for embedded server
+[embedded]
+
+# This group is only read by MariaDB servers, not by MySQL.
+# If you use the same .cnf file for MySQL and MariaDB,
+# you can put MariaDB-only options here
+[mariadb]
+
+# This group is only read by MariaDB-10.5 servers.
+# If you use the same .cnf file for MariaDB of different versions,
+# use this group for options that older servers don't understand
+[mariadb-10.5]
+
+```
 # Acknowledgement:
 <p align="right">(<a href="#top">back to top</a>)</p>
 
