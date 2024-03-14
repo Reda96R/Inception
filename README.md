@@ -1,4 +1,4 @@
-<div id="top"></div>
+	DEs<div id="top"></div>
 <!-- PROJECT LOGO -->
 <br>
 <div align="center">
@@ -11,6 +11,7 @@
 `This project aims to broaden your knowledge of system administration by using Docker. You will virtualize several Docker images, creating them in your new personal virtual machine.`
 
 ![Inception](https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1076e1f8-f0bd-43cb-ad02-775ee714a2c1/dfhw90h-473d540f-50f6-4c57-8e8b-5946d055112d.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzEwNzZlMWY4LWYwYmQtNDNjYi1hZDAyLTc3NWVlNzE0YTJjMVwvZGZodzkwaC00NzNkNTQwZi01MGY2LTRjNTctOGU4Yi01OTQ2ZDA1NTExMmQuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.B-pKCscLC4BRc3UNm69G9GC6pxakPUQP5pwA6UUQaY0)
+
 # Table of Contents
 1. [Project Overview](#project-overview)
 2. [Background Theory](#background-theory)
@@ -26,7 +27,9 @@
 # Project Overview:
 This project is intended to learn about the concept of **Containerization** and why we need it, also Gain practical experience in Docker image creation, management, and deployment.
 # Background theory:
+
 ![It works on my machine ¯\_(ツ)_/¯](https://i.imgflip.com/5hcaq2.jpg)
+
 Let's imagine this story, After months of burning the midnight oil, you crafted a masterpiece of an application: a sleek, intuitive, and downright revolutionary tool that promised to change the way people interacted with technology.  With a triumphant click of the "Deploy" button, you sent your creation out into the world, confident in its ability to dazzle and delight. but soon enough, Reports started pouring in of crashes, glitches, and inexplicable errors, Panicked, you dove headfirst into the code, scouring every line for clues as to what had gone wrong. Hours turned into days, and days turned into weeks, but the elusive bug remained elusive. at the end, It turned out that your application had been built on a fragile foundation of libraries, frameworks, and third-party services, each with its own quirks and idiosyncrasies. And when deployed to the wild, these dependencies clashed and collided like tectonic plates. 
 As we bid farewell to you and your epic struggle with software deployment, it's essential to acknowledge a truth that every developer eventually faces the specter of deployment woes will visit us all at some point in our coding journeys. Whether you're a seasoned pro or just starting out on your coding adventures, and thanks to **Containerization** which has emerged as a game-changer—a transformative technology that promises to revolutionize the way we build, deploy, and manage applications. By encapsulating applications and their dependencies into lightweight, portable units called containers, But what exactly are containers, and how do they work? In the next section, we'll dive deeper into the world of containerization, exploring its history, principles, and practical applications. So buckle up and get ready to embark on a journey into the heart of this transformative technology.
 ## Containerization:
@@ -37,6 +40,7 @@ in a nutshell, Containerization is a method of packaging, distributing, and runn
 There are many containerization thechnologies out there such as **[Podman](https://podman.io/)**,**[LXC](https://linuxcontainers.org/)**, **[**OpenVZ**](https://openvz.org/)** and many others, each with its own features and capabilities. but for us we're going to focus on the most popular one : **[Docker](https://www.docker.com/)**.
 
 ![kubernetes](https://media.licdn.com/dms/image/D4E10AQHEc7bZebbfOQ/image-shrink_800/0/1699883119851?e=2147483647&v=beta&t=VyjRBnpwpnmxbDL78gI7BiGfl57hTrn-tDBd4yuoq-8)
+
 ## Docker:
 > Wikipedia: **Docker** is a set of [platform as a service](https://en.wikipedia.org/wiki/Platform_as_a_service "Platform as a service") (PaaS) products that use [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_virtualization "OS-level virtualization") to deliver software in packages called _[containers](https://en.wikipedia.org/wiki/Container_(virtualization) "Container (virtualization)")_.[[4]](https://en.wikipedia.org/wiki/Docker_(software)#cite_note-SYS-CON_Media-4) The service has both free and premium tiers. The software that hosts the containers is called **Docker Engine**.[[5]](https://en.wikipedia.org/wiki/Docker_(software)#cite_note-what-is-a-container-5) It was first released in 2013 and is developed by [Docker, Inc](https://en.wikipedia.org/wiki/Docker,_Inc. "Docker, Inc.")
 ### How does Docker work:
@@ -53,7 +57,9 @@ The Project consists of mainly three parts, the first being the making of each o
 
 Now it is time to start making our Docker containers.
 ## Making the Containers:
+
 ![Inception](https://drivendata.co/images/one-container-is-not-enough.jpg)
+
 In order to create our container, we need a Docker image, this is simply a blueprint for Docker containers, They contain everything needed to run a container and the instructions for creating one, including the application code, runtime, libraries, dependencies, and system tools, where can we find this docker image? you might ask, I have two answers for this question, the first being [Docker Hub](https://hub.docker.com/), which is a cloud registry service, from which users can deploy containers and test and share images, a sort of an image store like app store for example, where we can find images for a lot of different containers, the second is **Dockerfile** which is text file containing instructions for building the image, It specifies the base image, sets the working directory, copies files into the image, installs dependencies, and defines the command to run when the container starts, and this makes the images typically layered, meaning each instruction in the Dockerfile creates a new layer in the image. This makes images lightweight and easy to share and distribute, in our project we're going to rely on Dockerfiles to create our own images.
 Here's a simple example of a Dockerfile for a Python web application using Flask:
 ```
@@ -202,6 +208,7 @@ http {
   }
 }
 ```
+
 ![config](https://media.giphy.com/media/3XR0chfiSTtAI/giphy.gif?cid=ecf05e4729m6fkxl3g0z6igc2i2huwne6au5t21zaoq6f3rn&ep=v1_gifs_search&rid=giphy.gif&ct=g)
 
 **WHAT ON EARTH IS THIS?!**
@@ -308,7 +315,7 @@ RUN apt install -y mariadb-server
 ```
 next we have two major steps, the first is to configure our Mariadb, the second is to set up a database and create a database user, let's start by the configuration.
 
-this is the base configuration file:
+this is the default server configuration:
 ```bash
 #
 # These groups are read by MariaDB server.
@@ -427,9 +434,121 @@ collation-server      = utf8mb4_general_ci
 # If you use the same .cnf file for MariaDB of different versions,
 # use this group for options that older servers don't understand
 [mariadb-10.5]
+```
+we need to change somethings on this configuration:
+first we'll remove the `[server]`, `[embedded]`, `[mariadb]`, and `[mariadb-10.5]` sections since they're not being used.
+>These sections are typically used to specify configuration options for different components or versions of MariaDB, but if they are empty or not needed in your setup, it's safe to remove them.
 
+by default MariaDB allows connection only from localhost and all connections from a remote server is denied, to change that we need to to modify the bind-address from 127.0.0.1 to 0.0.0.0, this will make our MariaDB accept connections on all host IPv4 interfaces,
+
+```bash
+bind-address            = 0.0.0.0
+```
+Since the default port for MariaDB is 3306, it is optional to add this line to our configuration
+```bash
+port            = 3306
+```
+the same goes for:
+```bash
+socket          = /run/mysql/mysqld.sock
+```
+as MySQL/MariaDB by default expects the Unix socket file to be located at `/var/run/mysqld/mysqld.sock`
+>Unix sockets provide a way for processes on the same machine to communicate with each other efficiently. When a MySQL/MariaDB client connects to the server running on the same machine, it can use a Unix socket instead of a network connection. This can offer better performance and security for local connections.
+
+Last we can uncomment the log_error option which specifies the path to the error log file where MariaDB will log any errors encountered during operation
+```bash
+log_error = /var/log/mysql/error.log
+```
+
+now let's have a look at the final state of our file,
+```bash
+# this is only for the mysqld standalone daemon
+[mysqld]
+user                    = mysql #Specifies the user account that the MySQL daemon process should run as
+pid-file                = /run/mysqld/mysqld.pid #Specifies the path to the file where the process ID (PID) of the MySQL daemon process should be written.
+basedir                 = /usr
+datadir                 = /var/lib/mysql #Specifies the base directory where MariaDB's executable files are located.
+tmpdir                  = /tmp #Specifies the directory where temporary files should be stored.
+socket					= /run/mysql/mysqld.sock #Specifies the path to the Unix socket file used for local client connections. (optional)
+port					= 3306 #(optional)
+lc-messages-dir         = /usr/share/mysql #Specifies the directory where language-specific error message files are located.
+
+lc-messages             = en_US #Specifies that the server will produce error messages and other textual output in English
+
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+bind-address            = 0.0.0.0
+
+log_error = /var/log/mysql/error.log
+expire_logs_days        = 10 #Specifies the number of days before binary log files should be automatically removed. Binary log files are used for point-in-time recovery and replication.
+
+# MySQL/MariaDB default is Latin1, but in Debian we rather default to the full
+# utf8 4-byte character set. See also client.cnf
+
+#Specifies the default character set and collation for the server. In this case, it's set to `utf8mb4` for both, which supports a wider range of characters compared to the older `utf8` character set.
+character-set-server  = utf8mb4
+collation-server      = utf8mb4_general_ci
+```
+>we removed `skip-external-locking` which instructs the MySQL/MariaDB server to bypass the use of external locking mechanisms. This means that the server will not rely on external locking protocols provided by the operating system. Instead, it will use its internal locking mechanisms for table-level locks, In recent versions of MySQL and MariaDB, external locking mechanisms have been deprecated and eventually removed. This means that the server always uses its internal locking mechanisms, regardless of whether `skip-external-locking` is enabled or not. Since external locking is no longer supported, the option has effectively become obsolete.
+
+let's add this file to our Dockerfile
+```dockerfile
+FROM debian:bullseye
+RUN apt update -y && apt upgrade -y
+RUN apt install -y mariadb-server
+COPY conf/50-server.cnf /etc/mysql/maiadb.conf.d/50-server.cnf
+```
+now that Mariadb is successfully installed and configured, it is time to create a database and a user, and to do that we're going to write a script, first let's run MySQL by
+```bash
+service mysql start;
+```
+next we'll create a database, but only if it does not already exist, and the same goes for the user:
+```bash
+service mysql start;
+sleep 1;
+mysql -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;";
+mysql -e "CREATE USER IF NOT EXISTS \`$MYSQL_USER/`@'%' IDENTIFIED BY '$MYSQL_PASSWORD';";
+```
+notice that we're using environment variables, these would be specified in the **.env** file.
+> Backticks are used to delimit identifiers, such as table names, column names, database names, and usernames. They are primarily used to distinguish identifiers from SQL keywords, to allow the use of special characters in identifiers, and to handle cases where an identifier coincides with a reserved word. For example, if you have a table named `order`, you would use backticks to refer to it: `SELECT * FROM` order`;`, while Single quotes are used to delimit string literals values, such as text strings or passwords.
+
+Now we need to grant permissions to our newly created user in order to have access to the database,
+```bash
+mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';";
+```
+next we need to change the root password
+```bash
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+```
+and then we should reload everything after the modifications
+```bash
+mysql -e "FLUSH PRIVILEGES;";
+```
+the last thing we should do is to restart MySQL
+```bash
+kill $(cat /var/run/mysqld/mysqld.pid);
+exec mysqld_safe
+```
+
+this is the final result of the script:
+```bash
+service mysql start;
+sleep 1;
+mysql -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;";
+mysql -e "CREATE USER IF NOT EXISTS \`$MYSQL_USER/`@'%' IDENTIFIED BY '$MYSQL_PASSWORD';";
+mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';";
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+mysql -e "FLUSH PRIVILEGES;";
+kill $(cat /var/run/mysqld/mysqld.pid);
+sleep 2;
+exec mysqld_safe
 ```
 # Acknowledgement:
+# Resources:
+- [Configuring MariaDB with Option Files](https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#default-option-file-locations)
+- [Enable Remote access to MariaDB/MySQL database](https://webdock.io/en/docs/how-guides/database-guides/remote-access-your-mariadb-mysql-database-ubuntu-focal-mariadb-v106)
+- [Create MariaDB User and Grant Privileges](https://phoenixnap.com/kb/how-to-create-mariadb-user-grant-privileges)
+- 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
