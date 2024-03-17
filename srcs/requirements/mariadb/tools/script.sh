@@ -1,21 +1,15 @@
-# service mysql start;
-# sleep 1;
-# mysql -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;";
-# mysql -e "CREATE USER IF NOT EXISTS \`$MYSQL_USER/`@'%' IDENTIFIED BY '$MYSQL_PASSWORD';";
-# mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';";
-# mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-# mysql -e "FLUSH PRIVILEGES;";
-# kill $(cat /var/run/mysqld/mysqld.pid);
-# sleep 2;
-# exec mysqld_safe
+#!/bin/bash
 
-service mysql start;
-sleep 1;
-mysql -e "CREATE DATABASE IF NOT EXISTS test;";
-mysql -e "CREATE USER IF NOT EXISTS testuser@'%' IDENTIFIED BY 1234;";
-mysql -e "GRANT ALL PRIVILEGES ON test.* TO testuser@'%' IDENTIFIED BY 1234;";
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 1234;"
-mysql -e "FLUSH PRIVILEGES;";
+service mariadb start
+mariadb -u root -e "CREATE DATABASE IF NOT EXISTS testbase;"
+mariadb -u root -e "CREATE USER IF NOT EXISTS 'testuser'@'%' IDENTIFIED BY '1234';"
+mariadb -u root -e "GRANT ALL PRIVILEGES ON testbase.* TO 'testuser'@'%';"
+mariadb -u root -e "FLUSH PRIVILEGES;"
+
+mariadb -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('4321');"
+mariadb -u root -e "FLUSH PRIVILEGES;"
+
+mariadb -u root -p4321 -e "GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY '4321';"
+mariadb -u root -p4321 -e "FLUSH PRIVILEGES;"
+
 kill $(cat /var/run/mysqld/mysqld.pid);
-sleep 2;
-exec mysqld_safe
