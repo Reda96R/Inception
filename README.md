@@ -1,5 +1,3 @@
-	DEs<div id="top"></div>
-<!-- PROJECT LOGO -->
 <br>
 <div align="center">
   <a href="https://github.com/Reda96R/Inception">
@@ -212,6 +210,7 @@ http {
 ![config](https://media.giphy.com/media/3XR0chfiSTtAI/giphy.gif?cid=ecf05e4729m6fkxl3g0z6igc2i2huwne6au5t21zaoq6f3rn&ep=v1_gifs_search&rid=giphy.gif&ct=g)
 
 **WHAT ON EARTH IS THIS?!**
+
 This was my reaction when I first opened that file, but don't worry I got your back ;),
 forget about everything up there, I want you to focus on this:
 ```bash
@@ -504,44 +503,558 @@ service mysql start;
 ```
 next we'll create a database, but only if it does not already exist, and the same goes for the user:
 ```bash
-service mysql start;
-sleep 1;
-mysql -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;";
-mysql -e "CREATE USER IF NOT EXISTS \`$MYSQL_USER/`@'%' IDENTIFIED BY '$MYSQL_PASSWORD';";
+service mariadb start;
+mariadb -u root -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;";
+mariadb -u root -e "CREATE USER IF NOT EXISTS \`$MYSQL_USER/`@'%' IDENTIFIED BY '$MYSQL_PASSWORD';";
 ```
 notice that we're using environment variables, these would be specified in the **.env** file.
 > Backticks are used to delimit identifiers, such as table names, column names, database names, and usernames. They are primarily used to distinguish identifiers from SQL keywords, to allow the use of special characters in identifiers, and to handle cases where an identifier coincides with a reserved word. For example, if you have a table named `order`, you would use backticks to refer to it: `SELECT * FROM` order`;`, while Single quotes are used to delimit string literals values, such as text strings or passwords.
 
 Now we need to grant permissions to our newly created user in order to have access to the database,
 ```bash
-mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';";
+mariadb -u root -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';";
 ```
 next we need to change the root password
 ```bash
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+mariadb -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
 ```
 and then we should reload everything after the modifications
 ```bash
-mysql -e "FLUSH PRIVILEGES;";
+mariadb -u root  -e "FLUSH PRIVILEGES;";
 ```
-the last thing we should do is to restart MySQL
+the last thing we should do is to stop MySQL
 ```bash
 kill $(cat /var/run/mysqld/mysqld.pid);
-exec mysqld_safe
 ```
 
 this is the final result of the script:
 ```bash
-service mysql start;
-sleep 1;
-mysql -e "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`;";
-mysql -e "CREATE USER IF NOT EXISTS \`$MYSQL_USER/`@'%' IDENTIFIED BY '$MYSQL_PASSWORD';";
-mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';";
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-mysql -e "FLUSH PRIVILEGES;";
+service mariadb start
+
+mariadb -u root -e "CREATE DATABASE IF NOT EXISTS testbase;"
+mariadb -u root -e "CREATE USER IF NOT EXISTS 'testuser'@'%' IDENTIFIED BY '1234';"
+mariadb -u root -e "GRANT ALL PRIVILEGES ON testbase.* TO 'testuser'@'%';"
+mariadb -u root -e "FLUSH PRIVILEGES;"
+
+mariadb -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('4321');"
+mariadb -u root -e "FLUSH PRIVILEGES;"
+
+mariadb -u root -p4321 -e "GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY '4321';"
+mariadb -u root -p4321 -e "FLUSH PRIVILEGES;"
+
 kill $(cat /var/run/mysqld/mysqld.pid);
-sleep 2;
-exec mysqld_safe
+```
+>In the docker file we should add `ENTRYPOINT ["mysqld_safe"]`
+
+### Wordpress:
+as usual we're gonna build our container on top of debian 11 and update and download the tools we need, our Dockerfile will look like this
+```dockerfile
+FROM debian:buster
+RUN apt update -y && apt upgrade -y
+RUN apt install -y vim && apt install -y wget
+```
+now we will install wordpress and php-fpm, wait we know php but what's **fpm**?, you might ask,
+in order to understand php-fpm, we need to have a look at what **CGI** and **FastCGI** are, In simple terms, **CGI(**Common Gateway Interface)** is like sending individual requests to the server, where each request starts a new process to handle it. **FastCGI**, on the other hand, uses persistent processes that can handle multiple requests over time, making it faster and more scalable, especially for websites with lots of visitors making requests simultaneously, more simpler, CGI is like having a new waiter for every customer in a restaurant, while FastCGI is like having a few waiters(group of PHP worker processes aka **pools**) serving multiple customers, making the process faster and more efficient, **[FPM(FastCGI Process Manager)](https://www.php.net/manual/en/install.fpm.php)** is simply a PHP FastCGI implementation designed for PHP-based web applications. now let's install it,
+```dockerfile
+FROM debian:buster
+RUN apt update -y && apt upgrade -y
+RUN apt install -y vim && apt install -y wget
+
+RUN apt install -y php7.4-fpm php7.4-mysql mariadb-client
+```
+In addition to php-fpm, we will need **php-mysql** where PHP handles the server-side scripting tasks, while MySQL manages the storage and retrieval of data, also we'll need **mariadb-client** that will be used to interact with the Mariadb server that we already installed in the Mariadb container. as usual after installing it, we need configure it, we got to modify the configuration file `www.conf` located in `/etc/php/7.4/fpm/pool.d/`, and it contains this:
+```bash
+; Start a new pool named 'www'.
+; the variable $pool can be used in any directive and will be replaced by the
+; pool name ('www' here)
+[www]
+
+; Per pool prefix
+; It only applies on the following directives:
+; - 'access.log'
+; - 'slowlog'
+; - 'listen' (unixsocket)
+; - 'chroot'
+; - 'chdir'
+; - 'php_values'
+; - 'php_admin_values'
+; When not set, the global prefix (or /usr) applies instead.
+; Note: This directive can also be relative to the global prefix.
+; Default Value: none
+;prefix = /path/to/pools/$pool
+
+; Unix user/group of processes
+; Note: The user is mandatory. If the group is not set, the default user's group
+;       will be used.
+user = www-data
+group = www-data
+
+; The address on which to accept FastCGI requests.
+; Valid syntaxes are:
+;   'ip.add.re.ss:port'    - to listen on a TCP socket to a specific IPv4 address on
+;                            a specific port;
+;   '[ip:6:addr:ess]:port' - to listen on a TCP socket to a specific IPv6 address on
+;                            a specific port;
+;   'port'                 - to listen on a TCP socket to all addresses
+;                            (IPv6 and IPv4-mapped) on a specific port;
+;   '/path/to/unix/socket' - to listen on a unix socket.
+; Note: This value is mandatory.
+listen = /run/php/php7.4-fpm.sock
+
+; Set listen(2) backlog.
+; Default Value: 511 (-1 on FreeBSD and OpenBSD)
+;listen.backlog = 511
+
+; Set permissions for unix socket, if one is used. In Linux, read/write
+; permissions must be set in order to allow connections from a web server. Many
+; BSD-derived systems allow connections regardless of permissions. The owner
+; and group can be specified either by name or by their numeric IDs.
+; Default Values: user and group are set as the running user
+;                 mode is set to 0660
+listen.owner = www-data
+listen.group = www-data
+;listen.mode = 0660
+; When POSIX Access Control Lists are supported you can set them using
+; these options, value is a comma separated list of user/group names.
+; When set, listen.owner and listen.group are ignored
+;listen.acl_users =
+;listen.acl_groups =
+
+; List of addresses (IPv4/IPv6) of FastCGI clients which are allowed to connect.
+; Equivalent to the FCGI_WEB_SERVER_ADDRS environment variable in the original
+; PHP FCGI (5.2.2+). Makes sense only with a tcp listening socket. Each address
+; must be separated by a comma. If this value is left blank, connections will be
+; accepted from any ip address.
+; Default Value: any
+;listen.allowed_clients = 127.0.0.1
+
+; Specify the nice(2) priority to apply to the pool processes (only if set)
+; The value can vary from -19 (highest priority) to 20 (lower priority)
+; Note: - It will only work if the FPM master process is launched as root
+;       - The pool processes will inherit the master process priority
+;         unless it specified otherwise
+; Default Value: no set
+; process.priority = -19
+
+; Set the process dumpable flag (PR_SET_DUMPABLE prctl) even if the process user
+; or group is differrent than the master process user. It allows to create process
+; core dump and ptrace the process for the pool user.
+; Default Value: no
+; process.dumpable = yes
+
+; Choose how the process manager will control the number of child processes.
+; Possible Values:
+;   static  - a fixed number (pm.max_children) of child processes;
+;   dynamic - the number of child processes are set dynamically based on the
+;             following directives. With this process management, there will be
+;             always at least 1 children.
+;             pm.max_children      - the maximum number of children that can
+;                                    be alive at the same time.
+;             pm.start_servers     - the number of children created on startup.
+;             pm.min_spare_servers - the minimum number of children in 'idle'
+;                                    state (waiting to process). If the number
+;                                    of 'idle' processes is less than this
+;                                    number then some children will be created.
+;             pm.max_spare_servers - the maximum number of children in 'idle'
+;                                    state (waiting to process). If the number
+;                                    of 'idle' processes is greater than this
+;                                    number then some children will be killed.
+;  ondemand - no children are created at startup. Children will be forked when
+;             new requests will connect. The following parameter are used:
+;             pm.max_children           - the maximum number of children that
+;                                         can be alive at the same time.
+;             pm.process_idle_timeout   - The number of seconds after which
+;                                         an idle process will be killed.
+; Note: This value is mandatory.
+pm = dynamic
+
+; The number of child processes to be created when pm is set to 'static' and the
+; maximum number of child processes when pm is set to 'dynamic' or 'ondemand'.
+; This value sets the limit on the number of simultaneous requests that will be
+; served. Equivalent to the ApacheMaxClients directive with mpm_prefork.
+; Equivalent to the PHP_FCGI_CHILDREN environment variable in the original PHP
+; CGI. The below defaults are based on a server without much resources. Don't
+; forget to tweak pm.* to fit your needs.
+; Note: Used when pm is set to 'static', 'dynamic' or 'ondemand'
+; Note: This value is mandatory.
+pm.max_children = 5
+
+; The number of child processes created on startup.
+; Note: Used only when pm is set to 'dynamic'
+; Default Value: (min_spare_servers + max_spare_servers) / 2
+pm.start_servers = 2
+
+; The desired minimum number of idle server processes.
+; Note: Used only when pm is set to 'dynamic'
+; Note: Mandatory when pm is set to 'dynamic'
+pm.min_spare_servers = 1
+
+; The desired maximum number of idle server processes.
+; Note: Used only when pm is set to 'dynamic'
+; Note: Mandatory when pm is set to 'dynamic'
+pm.max_spare_servers = 3
+
+; The number of seconds after which an idle process will be killed.
+; Note: Used only when pm is set to 'ondemand'
+; Default Value: 10s
+;pm.process_idle_timeout = 10s;
+
+; The number of requests each child process should execute before respawning.
+; This can be useful to work around memory leaks in 3rd party libraries. For
+; endless request processing specify '0'. Equivalent to PHP_FCGI_MAX_REQUESTS.
+; Default Value: 0
+;pm.max_requests = 500
+
+; The URI to view the FPM status page. If this value is not set, no URI will be
+; recognized as a status page. It shows the following informations:
+;   pool                 - the name of the pool;
+;   process manager      - static, dynamic or ondemand;
+;   start time           - the date and time FPM has started;
+;   start since          - number of seconds since FPM has started;
+;   accepted conn        - the number of request accepted by the pool;
+;   listen queue         - the number of request in the queue of pending
+;                          connections (see backlog in listen(2));
+;   max listen queue     - the maximum number of requests in the queue
+;                          of pending connections since FPM has started;
+;   listen queue len     - the size of the socket queue of pending connections;
+;   idle processes       - the number of idle processes;
+;   active processes     - the number of active processes;
+;   total processes      - the number of idle + active processes;
+;   max active processes - the maximum number of active processes since FPM
+;                          has started;
+;   max children reached - number of times, the process limit has been reached,
+;                          when pm tries to start more children (works only for
+;                          pm 'dynamic' and 'ondemand');
+; Value are updated in real time.
+; Example output:
+;   pool:                 www
+;   process manager:      static
+;   start time:           01/Jul/2011:17:53:49 +0200
+;   start since:          62636
+;   accepted conn:        190460
+;   listen queue:         0
+;   max listen queue:     1
+;   listen queue len:     42
+;   idle processes:       4
+;   active processes:     11
+;   total processes:      15
+;   max active processes: 12
+;   max children reached: 0
+;
+; By default the status page output is formatted as text/plain. Passing either
+; 'html', 'xml' or 'json' in the query string will return the corresponding
+; output syntax. Example:
+;   http://www.foo.bar/status
+;   http://www.foo.bar/status?json
+;   http://www.foo.bar/status?html
+;   http://www.foo.bar/status?xml
+;
+; By default the status page only outputs short status. Passing 'full' in the
+; query string will also return status for each pool process.
+; Example:
+;   http://www.foo.bar/status?full
+;   http://www.foo.bar/status?json&full
+;   http://www.foo.bar/status?html&full
+;   http://www.foo.bar/status?xml&full
+; The Full status returns for each process:
+;   pid                  - the PID of the process;
+;   state                - the state of the process (Idle, Running, ...);
+;   start time           - the date and time the process has started;
+;   start since          - the number of seconds since the process has started;
+;   requests             - the number of requests the process has served;
+;   request duration     - the duration in µs of the requests;
+;   request method       - the request method (GET, POST, ...);
+;   request URI          - the request URI with the query string;
+;   content length       - the content length of the request (only with POST);
+;   user                 - the user (PHP_AUTH_USER) (or '-' if not set);
+;   script               - the main script called (or '-' if not set);
+;   last request cpu     - the %cpu the last request consumed
+;                          it's always 0 if the process is not in Idle state
+;                          because CPU calculation is done when the request
+;                          processing has terminated;
+;   last request memory  - the max amount of memory the last request consumed
+;                          it's always 0 if the process is not in Idle state
+;                          because memory calculation is done when the request
+;                          processing has terminated;
+; If the process is in Idle state, then informations are related to the
+; last request the process has served. Otherwise informations are related to
+; the current request being served.
+; Example output:
+;   ************************
+;   pid:                  31330
+;   state:                Running
+;   start time:           01/Jul/2011:17:53:49 +0200
+;   start since:          63087
+;   requests:             12808
+;   request duration:     1250261
+;   request method:       GET
+;   request URI:          /test_mem.php?N=10000
+;   content length:       0
+;   user:                 -
+;   script:               /home/fat/web/docs/php/test_mem.php
+;   last request cpu:     0.00
+;   last request memory:  0
+;
+; Note: There is a real-time FPM status monitoring sample web page available
+;       It's available in: /usr/share/php/7.4/fpm/status.html
+;
+; Note: The value must start with a leading slash (/). The value can be
+;       anything, but it may not be a good idea to use the .php extension or it
+;       may conflict with a real PHP file.
+; Default Value: not set
+;pm.status_path = /status
+
+; The ping URI to call the monitoring page of FPM. If this value is not set, no
+; URI will be recognized as a ping page. This could be used to test from outside
+; that FPM is alive and responding, or to
+; - create a graph of FPM availability (rrd or such);
+; - remove a server from a group if it is not responding (load balancing);
+; - trigger alerts for the operating team (24/7).
+; Note: The value must start with a leading slash (/). The value can be
+;       anything, but it may not be a good idea to use the .php extension or it
+;       may conflict with a real PHP file.
+; Default Value: not set
+;ping.path = /ping
+
+; This directive may be used to customize the response of a ping request. The
+; response is formatted as text/plain with a 200 response code.
+; Default Value: pong
+;ping.response = pong
+
+; The access log file
+; Default: not set
+;access.log = log/$pool.access.log
+
+; The access log format.
+; The following syntax is allowed
+;  %%: the '%' character
+;  %C: %CPU used by the request
+;      it can accept the following format:
+;      - %{user}C for user CPU only
+;      - %{system}C for system CPU only
+;      - %{total}C  for user + system CPU (default)
+;  %d: time taken to serve the request
+;      it can accept the following format:
+;      - %{seconds}d (default)
+;      - %{miliseconds}d
+;      - %{mili}d
+;      - %{microseconds}d
+;      - %{micro}d
+;  %e: an environment variable (same as $_ENV or $_SERVER)
+;      it must be associated with embraces to specify the name of the env
+;      variable. Some exemples:
+;      - server specifics like: %{REQUEST_METHOD}e or %{SERVER_PROTOCOL}e
+;      - HTTP headers like: %{HTTP_HOST}e or %{HTTP_USER_AGENT}e
+;  %f: script filename
+;  %l: content-length of the request (for POST request only)
+;  %m: request method
+;  %M: peak of memory allocated by PHP
+;      it can accept the following format:
+;      - %{bytes}M (default)
+;      - %{kilobytes}M
+;      - %{kilo}M
+;      - %{megabytes}M
+;      - %{mega}M
+;  %n: pool name
+;  %o: output header
+;      it must be associated with embraces to specify the name of the header:
+;      - %{Content-Type}o
+;      - %{X-Powered-By}o
+;      - %{Transfert-Encoding}o
+;      - ....
+;  %p: PID of the child that serviced the request
+;  %P: PID of the parent of the child that serviced the request
+;  %q: the query string
+;  %Q: the '?' character if query string exists
+;  %r: the request URI (without the query string, see %q and %Q)
+;  %R: remote IP address
+;  %s: status (response code)
+;  %t: server time the request was received
+;      it can accept a strftime(3) format:
+;      %d/%b/%Y:%H:%M:%S %z (default)
+;      The strftime(3) format must be encapsuled in a %{<strftime_format>}t tag
+;      e.g. for a ISO8601 formatted timestring, use: %{%Y-%m-%dT%H:%M:%S%z}t
+;  %T: time the log has been written (the request has finished)
+;      it can accept a strftime(3) format:
+;      %d/%b/%Y:%H:%M:%S %z (default)
+;      The strftime(3) format must be encapsuled in a %{<strftime_format>}t tag
+;      e.g. for a ISO8601 formatted timestring, use: %{%Y-%m-%dT%H:%M:%S%z}t
+;  %u: remote user
+;
+; Default: "%R - %u %t \"%m %r\" %s"
+;access.format = "%R - %u %t \"%m %r%Q%q\" %s %f %{mili}d %{kilo}M %C%%"
+
+; The log file for slow requests
+; Default Value: not set
+; Note: slowlog is mandatory if request_slowlog_timeout is set
+;slowlog = log/$pool.log.slow
+
+; The timeout for serving a single request after which a PHP backtrace will be
+; dumped to the 'slowlog' file. A value of '0s' means 'off'.
+; Available units: s(econds)(default), m(inutes), h(ours), or d(ays)
+; Default Value: 0
+;request_slowlog_timeout = 0
+
+; Depth of slow log stack trace.
+; Default Value: 20
+;request_slowlog_trace_depth = 20
+
+; The timeout for serving a single request after which the worker process will
+; be killed. This option should be used when the 'max_execution_time' ini option
+; does not stop script execution for some reason. A value of '0' means 'off'.
+; Available units: s(econds)(default), m(inutes), h(ours), or d(ays)
+; Default Value: 0
+;request_terminate_timeout = 0
+
+; The timeout set by 'request_terminate_timeout' ini option is not engaged after
+; application calls 'fastcgi_finish_request' or when application has finished and
+; shutdown functions are being called (registered via register_shutdown_function).
+; This option will enable timeout limit to be applied unconditionally
+; even in such cases.
+; Default Value: no
+;request_terminate_timeout_track_finished = no
+
+; Set open file descriptor rlimit.
+; Default Value: system defined value
+;rlimit_files = 1024
+
+; Set max core size rlimit.
+; Possible Values: 'unlimited' or an integer greater or equal to 0
+; Default Value: system defined value
+;rlimit_core = 0
+
+; Chroot to this directory at the start. This value must be defined as an
+; absolute path. When this value is not set, chroot is not used.
+; Note: you can prefix with '$prefix' to chroot to the pool prefix or one
+; of its subdirectories. If the pool prefix is not set, the global prefix
+; will be used instead.
+; Note: chrooting is a great security feature and should be used whenever
+;       possible. However, all PHP paths will be relative to the chroot
+;       (error_log, sessions.save_path, ...).
+; Default Value: not set
+;chroot =
+
+; Chdir to this directory at the start.
+; Note: relative path can be used.
+; Default Value: current directory or / when chroot
+;chdir = /var/www
+
+; Redirect worker stdout and stderr into main error log. If not set, stdout and
+; stderr will be redirected to /dev/null according to FastCGI specs.
+; Note: on highloaded environement, this can cause some delay in the page
+; process time (several ms).
+; Default Value: no
+;catch_workers_output = yes
+
+; Decorate worker output with prefix and suffix containing information about
+; the child that writes to the log and if stdout or stderr is used as well as
+; log level and time. This options is used only if catch_workers_output is yes.
+; Settings to "no" will output data as written to the stdout or stderr.
+; Default value: yes
+;decorate_workers_output = no
+
+; Clear environment in FPM workers
+; Prevents arbitrary environment variables from reaching FPM worker processes
+; by clearing the environment in workers before env vars specified in this
+; pool configuration are added.
+; Setting to "no" will make all environment variables available to PHP code
+; via getenv(), $_ENV and $_SERVER.
+; Default Value: yes
+;clear_env = no
+
+; Limits the extensions of the main script FPM will allow to parse. This can
+; prevent configuration mistakes on the web server side. You should only limit
+; FPM to .php extensions to prevent malicious users to use other extensions to
+; execute php code.
+; Note: set an empty value to allow all extensions.
+; Default Value: .php
+;security.limit_extensions = .php .php3 .php4 .php5 .php7
+
+; Pass environment variables like LD_LIBRARY_PATH. All $VARIABLEs are taken from
+; the current environment.
+; Default Value: clean env
+;env[HOSTNAME] = $HOSTNAME
+;env[PATH] = /usr/local/bin:/usr/bin:/bin
+;env[TMP] = /tmp
+;env[TMPDIR] = /tmp
+;env[TEMP] = /tmp
+
+; Additional php.ini defines, specific to this pool of workers. These settings
+; overwrite the values previously defined in the php.ini. The directives are the
+; same as the PHP SAPI:
+;   php_value/php_flag             - you can set classic ini defines which can
+;                                    be overwritten from PHP call 'ini_set'.
+;   php_admin_value/php_admin_flag - these directives won't be overwritten by
+;                                     PHP call 'ini_set'
+; For php_*flag, valid values are on, off, 1, 0, true, false, yes or no.
+
+; Defining 'extension' will load the corresponding shared extension from
+; extension_dir. Defining 'disable_functions' or 'disable_classes' will not
+; overwrite previously defined php.ini values, but will append the new value
+; instead.
+
+; Note: path INI options can be relative and will be expanded with the prefix
+; (pool, global or /usr)
+
+; Default Value: nothing is defined by default except the values in php.ini and
+;                specified at startup with the -d argument
+;php_admin_value[sendmail_path] = /usr/sbin/sendmail -t -i -f www@my.domain.com
+;php_flag[display_errors] = off
+;php_admin_value[error_log] = /var/log/fpm-php.www.log
+;php_admin_flag[log_errors] = on
+;php_admin_value[memory_limit] = 32M
+
+```
+let's keep just what we need,
+```bash
+[www] #This indicates the start of a configuration block for the PHP pool named "www"
+
+; The address on which to accept FastCGI requests.
+listen = 0.0.0.0:9000 #Configures PHP-FPM to listen for FastCGI connections on all available network interfaces on the server, on port 9000, allowing connections from any client that can reach the server.
+
+listen.owner = www-data #Specifies the Unix user account that will own the Unix socket or TCP address defined in the `listen` directive.
+listen.group = www-data #Specifies the Unix group that will own the Unix socket or TCP address defined in the `listen` directive.
+
+; Unix user/group of processes
+user = www-data #Specifies the Unix user account under which PHP-FPM processes in this pool will run. 
+group = www-data #Specifies the Unix group under which PHP-FPM processes in this pool will run.
+
+; Choose how the process manager will control the number of child processes.
+pm = dynamic #Specifies the process manager type. In this case, it's set to dynamic, meaning PHP-FPM will dynamically adjust the number of child processes based on the workload.
+pm.max_children = 5 #Sets the maximum number of child processes that PHP-FPM will allow to spawn for this pool. Here, it's set to 5.
+pm.start_servers = 2 #Defines the number of child processes that PHP-FPM will start initially when it's started or restarted. Here, it's set to start 2 child processes.
+pm.min_spare_servers = 1 #Specifies the minimum number of idle child processes that PHP-FPM will maintain. If the number of idle processes falls below this value, PHP-FPM will spawn more child processes to meet this minimum.
+pm.max_spare_servers = 3 #Specifies the maximum number of idle child processes that PHP-FPM will maintain. If the number of idle processes exceeds this value, PHP-FPM will terminate the excess processes.
+
+clear_env = no #Determines whether environment variables passed in the client request should be cleared in the environment of PHP-FPM worker processes.
+```
+>When a client, such as a web server, sends a request to php-fpm to process a php script, it may include environment variables as part of the request headers or other metadata, The `clear_env` directive determines whether these environment variables from the client request should be cleared (removed) from the environment of php-fpm worker processes before executing the php script.
+
+Now it is turn for wordpress to be installed,
+```dockerfile
+RUN wget https://wordpress.org/latest.tar.gz -P /var/www
+RUN cd /var/www && tar -xfz latest.tar.gz && rm -rf latest.tar.gz
+```
+> the **-P** will place the downloaded file in `/var/www`
+
+last we need to change the ownership of the `/var/www/wordpress` directory and its contents to the `root` user and group by running
+```dockerfile
+RUN chown -R root:root /var/www/wordpress
+```
+the configuration file that should be configured is `/var/www/wordpress/wp-config.php`, it can be named `wp-config-sample.php`, if it's the case we simply change its name to `wp-config.php`, we can directly modify this file, but luckily for us there is something called **WordPress CLI (Command Line Interface)**, which is a tool that allows us to manage various aspects of our WordPress site directly from the command line, in our case we are going to use to configure WordPress, including setting up the database connection, creating the initial administrator account, and configuring basic settings, let's start by downloading it,
+```dockerfile
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /usr/local/bin/wp
+RUN chmod +x /usr/local/bin/wp
+```
+now let's write a script to setup everything with the CLI,
+```bash
+wp config set DB_NAME testbase --allow-root --path=/var/www/wordpress/
+wp config set DB_USER testuser --allow-root --path=/var/www/wordpress/
+wp config set DB_PASSWORD 1234 --allow-root --path=/var/www/wordpress/
+wp config set DB_HOST mariadb --allow-root --path=/var/www/wordpress/
+
+wp core install     --url=rerayyad.42.fr --title=testtitle --admin_user=rerayyad --admin_password=rerayyad --admin_email=rerayyad@mail.com --allow-root --path='/var/www/wordpress'
+wp user create      --allow-root --role=author rerayyad rerayyad@mail.com --user_pass=rerayyad --path='/var/www/wordpress' >> /log.txt
 ```
 # Acknowledgement:
 # Resources:
@@ -550,5 +1063,3 @@ exec mysqld_safe
 - [Create MariaDB User and Grant Privileges](https://phoenixnap.com/kb/how-to-create-mariadb-user-grant-privileges)
 - 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-
