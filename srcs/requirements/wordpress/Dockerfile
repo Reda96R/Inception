@@ -6,6 +6,9 @@ RUN	  apt install -y php7.4-fpm php7.4-mysql mariadb-client
 
 COPY  /conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 
+RUN	  mkdir -p /run/php
+RUN	  chmod 775 /run/php
+
 RUN	  wget https://wordpress.org/latest.tar.gz -P /var/www
 RUN	  cd /var/www && tar -xzf latest.tar.gz && rm latest.tar.gz
 

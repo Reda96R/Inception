@@ -19,6 +19,8 @@
 3. [Making the project](#making-the-project)
    1. [Making the Containers](#making-the-containers)
 	   1. [Nginx](###nginx)
+	   2. [Mariadb](###mariadb)
+	   3. [Wordpress](###wordpress)
 4. [Acknowledgement](#acknowledgement)
 5. [Resources](#resources)
 
@@ -1030,36 +1032,99 @@ clear_env = no #Determines whether environment variables passed in the client re
 ```
 >When a client, such as a web server, sends a request to php-fpm to process a php script, it may include environment variables as part of the request headers or other metadata, The `clear_env` directive determines whether these environment variables from the client request should be cleared (removed) from the environment of php-fpm worker processes before executing the php script.
 
-Now it is turn for wordpress to be installed,
+also we need to create PID directory for php-fpm to avoid any potential errors
+```dockerfile
+RUN mkdir -p /run/php
+RUN chmod 775 /run/php
+```
+
+Now it is turn for wordpress to be installed and configured,
 ```dockerfile
 RUN wget https://wordpress.org/latest.tar.gz -P /var/www
 RUN cd /var/www && tar -xfz latest.tar.gz && rm -rf latest.tar.gz
 ```
 > the **-P** will place the downloaded file in `/var/www`
 
-last we need to change the ownership of the `/var/www/wordpress` directory and its contents to the `root` user and group by running
+last we need to change the ownership of the `/var/www/wordpress` directory and its contents to the `root` user and group by running, this directory will contain our installation and configuration of wordpress,
 ```dockerfile
 RUN chown -R root:root /var/www/wordpress
 ```
-the configuration file that should be configured is `/var/www/wordpress/wp-config.php`, it can be named `wp-config-sample.php`, if it's the case we simply change its name to `wp-config.php`, we can directly modify this file, but luckily for us there is something called **WordPress CLI (Command Line Interface)**, which is a tool that allows us to manage various aspects of our WordPress site directly from the command line, in our case we are going to use to configure WordPress, including setting up the database connection, creating the initial administrator account, and configuring basic settings, let's start by downloading it,
+the configuration file that should be configured is `/var/www/wordpress/wp-config.php`, it can be named `wp-config-sample.php`, if it's the case we simply change its name to `wp-config.php`, it should contain the database connection details for wordpress It sets up parameters like database name, username, password, and host. We can directly modfy this file, but luckily for us there is something called **WordPress CLI (Command Line Interface)**, which is a tool that allows us to manage various aspects of our WordPress site directly from the command line, in our case we are going to use to configure WordPress, including setting up the database connection, creating the initial administrator account, and configuring basic settings, let's start by downloading it,
 ```dockerfile
 RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /usr/local/bin/wp
 RUN chmod +x /usr/local/bin/wp
 ```
-now let's write a script to setup everything with the CLI,
+now let's write a script to setup everything with the CLI, starting by downloading core wordpress files,
 ```bash
-wp config set DB_NAME testbase --allow-root --path=/var/www/wordpress/
-wp config set DB_USER testuser --allow-root --path=/var/www/wordpress/
-wp config set DB_PASSWORD 1234 --allow-root --path=/var/www/wordpress/
-wp config set DB_HOST mariadb --allow-root --path=/var/www/wordpress/
-
-wp core install     --url=rerayyad.42.fr --title=testtitle --admin_user=rerayyad --admin_password=rerayyad --admin_email=rerayyad@mail.com --allow-root --path='/var/www/wordpress'
-wp user create      --allow-root --role=author rerayyad rerayyad@mail.com --user_pass=rerayyad --path='/var/www/wordpress' >> /log.txt
+wp core download --allow-root
 ```
+next let's add our database credentials to wordpress
+```bash
+wp config create  --allow-root --dbname=testbase --dbuser=testuser --dbpass=1234 --dbhost=mariadb:3306 --path='/var/www/wordpress'
+```
+>**[wp config create:](https://developer.wordpress.org/cli/commands/config/create/)** Creates a new wp-config.php with database constants, and verifies that the database constants are correct.
+
+Now let's actually install wordpress itself 
+```bash
+wp core install     --url=rerayyad.42.fr --title=testtitle --admin_user=rerayyad --admin_password=rerayyad --admin_email=rerayyad@mail.com --allow-root --path='/var/www/wordpress'
+```
+>**[wp core install](https://developer.wordpress.org/cli/commands/core/install/)**: Sets up a new WordPress installation with the specified configuration parameters, such as site URL, title, admin username, password, and email. It also creates the necessary database tables, sets up the initial configuration files, and prepares the basic structure of a WordPress site.
+
+this last step will avoid the wordpress installation page from showing every time we run the container,
+lastly we need to create a user as specified in the subject, for that we'll simply use [wp user create](https://developer.wordpress.org/cli/commands/user/create/),
+```bash
+wp user create --allow-root --role=author usertest2 usermail2@mail.com --user_pass=1234 --path='/var/www/wordpress'
+```
+the final result of our Dockerfile will look something like this:
+```dockerfile
+FROM  debian:bullseye
+RUN       apt update -y && apt upgrade -y
+RUN       apt install -y vim && apt install -y wget
+
+RUN       apt install -y php7.4-fpm php7.4-mysql mariadb-client
+
+COPY  /conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
+
+RUN mkdir -p /run/php
+RUN chmod 775 /run/php
+
+RUN       wget https://wordpress.org/latest.tar.gz -P /var/www
+RUN       cd /var/www && tar -xzf latest.tar.gz && rm latest.tar.gz
+
+RUN       wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp
+RUN       chmod +x /usr/local/bin/wp
+
+COPY  /tools/script.sh /
+RUN       chmod +x script.sh
+ENTRYPOINT ["bash", "script.sh"]
+```
+
+And we're finally done with making and configuring the containers
+
+![exhausted](https://media.giphy.com/media/3o7TKEP6YngkCKFofC/giphy.gif?cid=ecf05e475bcb0rl8uwh69g5ycktcji7k67sbwzz4gam497ww&ep=v1_gifs_search&rid=giphy.gif&ct=g)
+
+All we need now is to run our services all together, to do that we gonna need something called **Docker Compose**.
+## Docker Compose:
+Docker Compose is a tool used for defining and running multi-container Docker applications. It allows us to define the services, networks, and volumes for our application in a YAML file called `docker-compose.yml`, here's a very basic example of what it might look like:
+```yaml
+version: '3'
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+```
+here we define two services(containers), `web` and `db`, and we specify the parameters of each one, if we want start these services we run `docker-compose up`.
+now let's make our own,
 # Acknowledgement:
 # Resources:
 - [Configuring MariaDB with Option Files](https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#default-option-file-locations)
 - [Enable Remote access to MariaDB/MySQL database](https://webdock.io/en/docs/how-guides/database-guides/remote-access-your-mariadb-mysql-database-ubuntu-focal-mariadb-v106)
 - [Create MariaDB User and Grant Privileges](https://phoenixnap.com/kb/how-to-create-mariadb-user-grant-privileges)
+- [Installing and using WP-CLI](https://www.hostinger.fr/tutoriels/wp-cli#Les_principes_de_base_des_commandes_de_WP-CLI) 
 - 
 <p align="right">(<a href="#top">back to top</a>)</p>
