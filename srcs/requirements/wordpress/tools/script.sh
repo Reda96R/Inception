@@ -1,8 +1,8 @@
 #!bin/bash
 wp core download --allow-root
 
-wp config create --allow-root --dbname=testbase --dbuser=testuser --dbpass=1234 --dbhost=mariadb:3306 --path='/var/www/wordpress'
+wp config create --allow-root --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=mariadb:3306 --path='/var/www/wordpress'
 
-wp core install     --url=rerayyad.42.fr --title=testtitle --admin_user=rerayyad --admin_password=rerayyad --admin_email=rerayyad@mail.com --allow-root --path='/var/www/wordpress'
+wp core install     --url=$DOMAIN_NAME --title=$SITE_TITLE --admin_user=$ADMIN_USER --admin_password=$ADMIN_PASS --admin_email=$ADMIN_EMAIL --allow-root --path='/var/www/wordpress'
 
-wp user create      --allow-root --role=author rerayyad2 rerayyad2@mail.com --user_pass=rerayyad --path='/var/www/wordpress'
+wp user create      --allow-root --role=author $USER0_LOGIN $USER0_MAIL --user_pass=$USER_PASS --path='/var/www/wordpress'
