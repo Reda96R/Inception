@@ -17,3 +17,4 @@ RUN	  chmod +x /usr/local/bin/wp
 
 COPY  /tools/script.sh /
 RUN	  chmod +x script.sh
+ENTRYPOINT ["bash", "script.sh"]

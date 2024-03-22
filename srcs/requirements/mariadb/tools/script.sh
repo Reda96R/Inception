@@ -9,7 +9,7 @@ mariadb -u root -e "FLUSH PRIVILEGES;"
 mariadb -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('$MYSQL_ROOT_PASSWORD');"
 mariadb -u root -e "FLUSH PRIVILEGES;"
 
-mariadb -u root -p4321 -e "GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';"
-mariadb -u root -p4321 -e "FLUSH PRIVILEGES;"
+mariadb -u root -p$MYSQL_ROOT_PASSWORD -e "GRANT ALL ON *.* TO 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';"
+mariadb -u root -p$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES;"
 
 kill $(cat /var/run/mysqld/mysqld.pid);
