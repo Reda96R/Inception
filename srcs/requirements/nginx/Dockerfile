@@ -9,5 +9,5 @@ RUN openssl req -x509 -nodes -out /etc/nginx/ssl/certificate.crt -keyout /etc/ng
 COPY conf/rerayyad.conf /etc/nginx/sites-available/rerayyad.conf
 RUN ln -s /etc/nginx/sites-available/rerayyad.conf /etc/nginx/sites-enabled/
 
-# EXPOSE 808
-# CMD ["nginx", "-g", "daemon off;"]
+# EXPOSE 443
+CMD ["nginx", "-g", "daemon off;"]
