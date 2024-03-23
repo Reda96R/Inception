@@ -59,11 +59,11 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '~/Desktop/wordpress1'
+      device: '~/Desktop/wordpress2'
   mariadb:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '~/Desktop/mariadb1'
+      device: '~/Desktop/mariadb2'
 
