@@ -1,7 +1,7 @@
 #!bin/bash
 wp core download --allow-root
-sleep 3
-wp config create --allow-root --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=mariadb:3306 --path='/var/www/wordpress'
+# sleep 3
+# wp config create --allow-root --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=mariadb:3306 --path='/var/www/wordpress'
 
 # rm -rf /var/www/wordpress/wp-config-sample.php 
 # touch /var/www/wordpress/wp-config.php
