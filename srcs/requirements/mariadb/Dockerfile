@@ -1,8 +1,13 @@
 FROM debian:bullseye
 
+ARG MYSQL_DATABASE
+ARG MYSQL_USER
+ARG MYSQL_PASSWORD
+
 RUN apt update -y && apt upgrade -y
+
 RUN apt install -y vim
-RUN apt install -y mariadb-server mariadb-client
+RUN apt install -y mariadb-server
 
 RUN	mkdir -p /var/lib/mysql /var/run/mysqld
 RUN	chown -R mysql:mysql /var/lib/mysql /var/run/mysqld

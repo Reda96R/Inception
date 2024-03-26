@@ -1,7 +1,21 @@
 FROM  debian:bullseye
+
+ARG MYSQL_DATABASE
+ARG MYSQL_USER
+ARG MYSQL_PASSWORD
+
+ARG DOMAIN_NAME
+ARG SITE_TITLE
+ARG ADMIN_USER
+ARG ADMIN_PASS
+ARG ADMIN_EMAIL
+
+ARG USER0_LOGIN
+ARG USER0_PASS
+ARG USER0_MAIL
+
 RUN	  apt update -y && apt upgrade -y
 RUN	  apt install -y vim && apt install -y wget
-
 RUN	  apt install -y php7.4-fpm php7.4-mysql mariadb-client
 
 COPY  /conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
@@ -17,4 +31,5 @@ RUN	  chmod +x /usr/local/bin/wp
 
 COPY  /tools/script.sh /
 RUN	  chmod +x script.sh
+
 ENTRYPOINT ["bash", "script.sh"]
