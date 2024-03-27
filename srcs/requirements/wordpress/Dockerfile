@@ -18,11 +18,13 @@ RUN	  apt update -y && apt upgrade -y
 RUN	  apt install -y vim && apt install -y wget
 RUN	  apt install -y php7.4-fpm php7.4-mysql mariadb-client
 
+#::::::::::::::::::::::::::::::::::Config:::::::::::::::::::::::::::
 COPY  /conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 
 RUN	  mkdir -p /run/php
 RUN	  chmod 775 /run/php
 
+#::::::::::::::::::::::::::::::::::Setup:::::::::::::::::::::::::::
 RUN	  wget https://wordpress.org/latest.tar.gz -P /var/www
 RUN	  cd /var/www && tar -xzf latest.tar.gz && rm latest.tar.gz
 

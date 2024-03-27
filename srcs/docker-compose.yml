@@ -75,11 +75,11 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '~/Desktop/wordpress'
+      device: '/home/rerayyad/data/wordpress'
   mariadb:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '~/Desktop/mariadb'
+      device: '/home/rerayyad/data/mariadb'
 
