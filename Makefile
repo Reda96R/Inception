@@ -1,7 +1,7 @@
 all: volumes hosts
 	@echo $(F_GREEN)":::✅ Containers are ready ✅:::"$(NONE)
 	@echo $(CURSIVE)$(GRAY)":::Running the containers $(NAME):::"$(NONE)
-	@sudo docker-compose -f $(YML_PATH) up --build
+	@sudo docker compose -f $(YML_PATH) up --build
 
 volumes:
 	@echo $(CURSIVE)$(GRAY)":::Creating volumes directories:::"$(NONE)
@@ -13,19 +13,19 @@ volumes:
 
 hosts:
 	@echo $(CURSIVE)$(GRAY)":::Editing hosts:::"$(NONE)
-	@if ! grep -qFx "127.0.0.1 $(LOGIN).42.fr" /etc/hosts; then \
+	@if ! grep -qFx "127.0.0.1	$(LOGIN).42.fr" /etc/hosts; then \
 		sudo sed -i '2i\127.0.0.1\t$(LOGIN).42.fr' /etc/hosts; \
 	fi
 	@echo $(GREEN)":::✅ Hosts are ready ✅:::"$(NONE)
 
 down:
 	@echo $(CURSIVE)$(GRAY)":::Stoping the containers:::"$(NONE)
-	@docker-compose -f $(YML_PATH) down
+	@docker compose -f $(YML_PATH) down
 	@echo $(RED)":::Containers stoped:::"$(NONE)
 
 up:
 	@echo $(CURSIVE)$(GRAY)":::Starting the containers:::"$(NONE)
-	@sudo docker-compose -f $(YML_PATH) up
+	@sudo docker compose -f $(YML_PATH) up
 
 fclean: down
 	@echo $(CURSIVE)$(GRAY)":::Deleting volumes:::"$(NONE)

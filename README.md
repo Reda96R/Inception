@@ -1310,7 +1310,21 @@ Since the subject doesn't specify anything about the Makefile, you can pretty mu
 >**⚠️** Don't forget to change the **sever_name** in Nginx's configuration to `login.42.fr`
 >also add the location for php files
 
-Now we will modify the Wordpress configuration script to be more robust, this step is optional but I advise you to do it,
+Now we will modify the Wordpress configuration script, this step is optional but I advise you to do it, we are simply going to prevent wordpress's CLI from re-configuring the `wp-config.php` file if it is already configured, to do that we'll simply check if it's already there,
+```bash
+if [ ! -f "/var/www/wordpress/wp-config.php" ]; then
+	mv /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
+	wp config set DB_NAME $MYSQL_DATABASE --allow-root --path=/var/www/wordpress/
+	wp config set DB_USER $MYSQL_USER --allow-root --path=/var/www/wordpress/
+	wp config set DB_PASSWORD $MYSQL_PASSWORD --allow-root --path=/var/www/wordpress/
+	wp config set DB_HOST mariadb:3306 --allow-root --path=/var/www/wordpress/
+fi
+```
+
+![mission accomplished](https://media.giphy.com/media/8UF0EXzsc0Ckg/giphy.gif?cid=790b7611a9bdayuyp2l9z8fqr1vg0256pijoa0tod5ib60j8&ep=v1_gifs_search&rid=giphy.gif&ct=g)
+
+We are officially done with the mandatory part of project and now you can test your small infrastructure by simply running the containers and searching for `https://login.42.fr` in the browser, and a page from wordpress should be displayed.
+>**⚠️⚠️⚠️** DON'T FORGET TO REMOVE THE `.env` FROM THE REPOSITORY.
 # Acknowledgement:
 # Resources:
 - [Configuring MariaDB with Option Files](https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#default-option-file-locations)
@@ -1319,3 +1333,4 @@ Now we will modify the Wordpress configuration script to be more robust, this st
 - [Installing and using WP-CLI](https://www.hostinger.fr/tutoriels/wp-cli#Les_principes_de_base_des_commandes_de_WP-CLI) 
 - [Syntax for environment files in Docker Compose](https://docs.docker.com/compose/environment-variables/env-file/)
 <p align="right">(<a href="#top">back to top</a>)</p>
+
