@@ -6,61 +6,68 @@
 
 <h1 align="center">::: Inception_42 :::</h1>
 </div>
+
 `This project aims to broaden your knowledge of system administration by using Docker. You will virtualize several Docker images, creating them in your new personal virtual machine.`
 
 ![Inception](https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1076e1f8-f0bd-43cb-ad02-775ee714a2c1/dfhw90h-473d540f-50f6-4c57-8e8b-5946d055112d.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzEwNzZlMWY4LWYwYmQtNDNjYi1hZDAyLTc3NWVlNzE0YTJjMVwvZGZodzkwaC00NzNkNTQwZi01MGY2LTRjNTctOGU4Yi01OTQ2ZDA1NTExMmQuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.B-pKCscLC4BRc3UNm69G9GC6pxakPUQP5pwA6UUQaY0)
-
 # Table of Contents
 1. [Project Overview](#project-overview)
 2. [Background Theory](#background-theory)
    1. [Containerization](#containerization)
    2. [Docker](#docker)
-	   1. [How does Docker work](###how-does-docker-work)
+       1. [How does Docker work](#how-does-docker-work)
+       2. [Containerization vs Virtualization](#containerization-vs-virtualization)
 3. [Making the project](#making-the-project)
    1. [Making the Containers](#making-the-containers)
-	   1. [Nginx](###nginx)
-	   2. [Mariadb](###mariadb)
-	   3. [Wordpress](###wordpress)
+       1. [Nginx](#nginx)
+       2. [Mariadb](#mariadb)
+       3. [WordPress](#wordpress)
+   2. [Docker Compose](#docker-compose)
+   3. [Grand Finale](#grand-finale)
 4. [Acknowledgement](#acknowledgement)
 5. [Resources](#resources)
 
+
 # Project Overview:
-This project is intended to learn about the concept of **Containerization** and why we need it, also Gain practical experience in Docker image creation, management, and deployment.
+This project is intended to learn about the concept of **Containerization** and why we need it, and also Gain practical experience in Docker image creation, management, and deployment.
 # Background theory:
 
 ![It works on my machine ¯\_(ツ)_/¯](https://i.imgflip.com/5hcaq2.jpg)
 
-Let's imagine this story, After months of burning the midnight oil, you crafted a masterpiece of an application: a sleek, intuitive, and downright revolutionary tool that promised to change the way people interacted with technology.  With a triumphant click of the "Deploy" button, you sent your creation out into the world, confident in its ability to dazzle and delight. but soon enough, Reports started pouring in of crashes, glitches, and inexplicable errors, Panicked, you dove headfirst into the code, scouring every line for clues as to what had gone wrong. Hours turned into days, and days turned into weeks, but the elusive bug remained elusive. at the end, It turned out that your application had been built on a fragile foundation of libraries, frameworks, and third-party services, each with its own quirks and idiosyncrasies. And when deployed to the wild, these dependencies clashed and collided like tectonic plates. 
-As we bid farewell to you and your epic struggle with software deployment, it's essential to acknowledge a truth that every developer eventually faces the specter of deployment woes will visit us all at some point in our coding journeys. Whether you're a seasoned pro or just starting out on your coding adventures, and thanks to **Containerization** which has emerged as a game-changer—a transformative technology that promises to revolutionize the way we build, deploy, and manage applications. By encapsulating applications and their dependencies into lightweight, portable units called containers, But what exactly are containers, and how do they work? In the next section, we'll dive deeper into the world of containerization, exploring its history, principles, and practical applications. So buckle up and get ready to embark on a journey into the heart of this transformative technology.
+Let's imagine this story, After months of burning the midnight oil, you crafted a masterpiece of an application: a sleek, intuitive, and downright revolutionary tool that promised to change the way people interacted with technology.  With a triumphant click of the "Deploy" button, you sent your creation out into the world, confident in its ability to dazzle and delight. but soon enough, Reports started pouring in of crashes, glitches, and inexplicable errors, Panicked, you dove headfirst into the code, scouring every line for clues as to what had gone wrong. Hours turned into days, and days turned into weeks, but the elusive bug remained elusive. in the end, It turned out that your application had been built on a fragile foundation of libraries, frameworks, and third-party services, each with its quirks and idiosyncrasies. And when deployed to the wild, these dependencies clashed and collided like tectonic plates. 
+As we bid farewell to you and your epic struggle with software deployment, it's essential to acknowledge the truth that every developer who eventually faces the specter of deployment woes will visit us all at some point in our coding journeys. Whether you're a seasoned pro or just starting on your coding adventures, thanks to **Containerization** which has emerged as a game-changer—a transformative technology that promises to revolutionize the way we build, deploy, and manage applications. By encapsulating applications and their dependencies into lightweight, portable units called containers, what exactly are containers, and how do they work? In the next section, we'll dive deeper into the world of containerization, exploring its history, principles, and practical applications. So buckle up and get ready to embark on a journey into the heart of this transformative technology.
 ## Containerization:
-Same as how shipping containers made cargo easily transported whether it be via trucks, trains or ships, containerization made apps easily moved across different environments.
+Same as how shipping containers made cargo easily transported whether it be via trucks, trains, or ships, containerization made apps easily moved across different environments.
 in a nutshell, Containerization is a method of packaging, distributing, and running applications in lightweight, isolated environments called containers. These containers encapsulate everything an application needs to run, including its code, runtime, system tools, libraries, and settings.
 > IBM: Containerization is the packaging of software code with just the operating system (OS) libraries and dependencies that are required to run the code to create a single lightweight executable—called a container—that runs consistently on any infrastructure.
 
-There are many containerization thechnologies out there such as **[Podman](https://podman.io/)**,**[LXC](https://linuxcontainers.org/)**, **[**OpenVZ**](https://openvz.org/)** and many others, each with its own features and capabilities. but for us we're going to focus on the most popular one : **[Docker](https://www.docker.com/)**.
+There are many containerization technologies out there such as **[Podman](https://podman.io/)**,**[LXC](https://linuxcontainers.org/)**, **[**OpenVZ**](https://openvz.org/)** and many others, each with its features and capabilities. but for us, we're going to focus on the most popular one: **[Docker](https://www.docker.com/)**.
 
 ![kubernetes](https://media.licdn.com/dms/image/D4E10AQHEc7bZebbfOQ/image-shrink_800/0/1699883119851?e=2147483647&v=beta&t=VyjRBnpwpnmxbDL78gI7BiGfl57hTrn-tDBd4yuoq-8)
 
 ## Docker:
 > Wikipedia: **Docker** is a set of [platform as a service](https://en.wikipedia.org/wiki/Platform_as_a_service "Platform as a service") (PaaS) products that use [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_virtualization "OS-level virtualization") to deliver software in packages called _[containers](https://en.wikipedia.org/wiki/Container_(virtualization) "Container (virtualization)")_.[[4]](https://en.wikipedia.org/wiki/Docker_(software)#cite_note-SYS-CON_Media-4) The service has both free and premium tiers. The software that hosts the containers is called **Docker Engine**.[[5]](https://en.wikipedia.org/wiki/Docker_(software)#cite_note-what-is-a-container-5) It was first released in 2013 and is developed by [Docker, Inc](https://en.wikipedia.org/wiki/Docker,_Inc. "Docker, Inc.")
 ### How does Docker work:
-Docker is basically running on top of a host machine, and it is sharing the kernel of that machine with the containers, providing isolated processes in their own user space.
+Docker is running on top of a host machine, and it shares the kernel of that machine with the containers, providing isolated processes in their own user space.
+<div align="center">
+    <img src="https://github.com/Reda96R/Inception/blob/main/images/Containerization.png?raw=true" alt="Containerization">
+</div>
+You might notice something weird here, if we need an isolated environment with a separate Os from the Host's, why on earth would we choose a dang container over something that we already know, which is virtualization?
 
-You might notice something weird here, if we need an isolated environment with a separate Os from the Host's, why on earth would we chose a dang container over a something that we already know, which is virtualization?
 ### Containerization vs Virtualization:
-We had a glimps on virtualization in a previous [project](https://github.com/Reda96R/Born2beroot), and we saw how we can create a totally separate environment using a virtual machine, but why using a container, in order to spot the difference between those two, let's have a look on how each one of them work,
+We had a glimpse of virtualization in a previous [project](https://github.com/Reda96R/Born2beroot), and we saw how we can create a separate environment using a virtual machine, but why use a container, to spot the difference between those two, let's have a look on how each one of them work,
 
 # Making the project:
-The Project consists of mainly three parts, the first being the making of each of the services's container, then we need to make the volumes for these services, and the last step is to make a docker network to establish a connection between our services, the following diagram represents the intended project structure,
+The Project consists of mainly three main parts, the first being the making of each of the service's containers, then we need to make the volumes for these services, and the last step is to make a docker network to establish a connection between our services, the following diagram represents the intended project structure,
+<div align="center">
+    <img src="https://github.com/Reda96R/Inception/blob/main/images/Flow.png?raw=true" alt="Flow">
+</div>
 
-//Diagram
-
-Now it is time to start making our Docker containers.
 ## Making the Containers:
 
 ![Inception](https://drivendata.co/images/one-container-is-not-enough.jpg)
 
-In order to create our container, we need a Docker image, this is simply a blueprint for Docker containers, They contain everything needed to run a container and the instructions for creating one, including the application code, runtime, libraries, dependencies, and system tools, where can we find this docker image? you might ask, I have two answers for this question, the first being [Docker Hub](https://hub.docker.com/), which is a cloud registry service, from which users can deploy containers and test and share images, a sort of an image store like app store for example, where we can find images for a lot of different containers, the second is **Dockerfile** which is text file containing instructions for building the image, It specifies the base image, sets the working directory, copies files into the image, installs dependencies, and defines the command to run when the container starts, and this makes the images typically layered, meaning each instruction in the Dockerfile creates a new layer in the image. This makes images lightweight and easy to share and distribute, in our project we're going to rely on Dockerfiles to create our own images.
+To create our container, we need a Docker image, this is simply a blueprint for Docker containers, They contain everything needed to run a container and the instructions for creating one, including the application code, runtime, libraries, dependencies, and system tools, where can we find this docker image? you might ask, I have two answers for this question, the first being [Docker Hub](https://hub.docker.com/), which is a cloud registry service, from which users can deploy containers and test and share images, a sort of an image store-like app store for example, where we can find images for a lot of different containers, the second is **Dockerfile** which is a text file containing instructions for building the image, It specifies the base image, sets the working directory, copies files into the image, installs dependencies, and defines the command to run when the container starts, and this makes the images typically layered, meaning each instruction in the Dockerfile creates a new layer in the image. This makes images lightweight and easy to share and distribute, in our project we're going to rely on Dockerfiles to create our images.
 Here's a simple example of a Dockerfile for a Python web application using Flask:
 ```
 # Use an official Python runtime as the base image
@@ -265,13 +272,13 @@ server {
     ssl_certificate_key etc/nginx/ssl/private.key;
     ssl_protocols       TLSv1.2 TLSv1.3;
 
-	root /var/www/html;
-	index index.html index.htm index.nginx-debian.html;
-	server_name _;
+        root /var/www/html;
+        index index.html index.htm index.nginx-debian.html;
+        server_name _;
 
-	location / {
-		try_files $uri $uri/ =404;
-	}
+        location / {
+                try_files $uri $uri/ =404;
+        }
 }
 ```
 - `root /var/www/html` This sets the root directory for serving files for this server block. In this case, it's set to `/var/www/html`, which is a common location for serving static files on NGINX.
@@ -470,8 +477,8 @@ pid-file                = /run/mysqld/mysqld.pid #Specifies the path to the file
 basedir                 = /usr
 datadir                 = /var/lib/mysql #Specifies the base directory where MariaDB's executable files are located.
 tmpdir                  = /tmp #Specifies the directory where temporary files should be stored.
-socket					= /run/mysql/mysqld.sock #Specifies the path to the Unix socket file used for local client connections. (optional)
-port					= 3306 #(optional)
+socket                                  = /run/mysql/mysqld.sock #Specifies the path to the Unix socket file used for local client connections. (optional)
+port                                    = 3306 #(optional)
 lc-messages-dir         = /usr/share/mysql #Specifies the directory where language-specific error message files are located.
 
 lc-messages             = en_US #Specifies that the server will produce error messages and other textual output in English
@@ -1121,23 +1128,23 @@ services:
 as shown in the example above, we start by specifying the version of docker compose syntax we're using, next we define the services, Each service should have a name and a set of configuration options, in our example we defined two services(containers), `web` and `db`, and we specify the parameters of each one, if we want start these services we run `docker-compose up`.
 now let's make our own following the same steps,
 ```yaml
-	version: "3.8"
-	
-	services:
-	mariadb: # This is used to reference the service within the docker compose file
-	container_name: mariadb # Specifies the name of the container that Docker will create
-	networks: # Specifies the network(s) to which this service should be connected
-		- inception
-	build: # This section specifies how to build the Docker image
-		context: requirements/mariadb
-		dockerfile: Dockerfile
-	image: mariadb # Specifies the Docker image to use for this service which in our case is made through the Dockerfile
-	volumes: # This mounts a volume named  mariadb to the directory /var/lib/mysql within the container. This allows data to persist beyond the container's lifecycle.
-		- mariadb:/var/lib/mysql
-	env_file: .env # This allows us to specify a file containing environment variables to be loaded into the container's environment
-	restart: on-failure # This will restart the container in the case of a failure
-	expose:
-		- "3306"
+        version: "3.8"
+
+        services:
+        mariadb: # This is used to reference the service within the docker compose file
+        container_name: mariadb # Specifies the name of the container that Docker will create
+        networks: # Specifies the network(s) to which this service should be connected
+                - inception
+        build: # This section specifies how to build the Docker image
+                context: requirements/mariadb
+                dockerfile: Dockerfile
+        image: mariadb # Specifies the Docker image to use for this service which in our case is made through the Dockerfile
+        volumes: # This mounts a volume named  mariadb to the directory /var/lib/mysql within the container. This allows data to persist beyond the container's lifecycle.
+                - mariadb:/var/lib/mysql
+        env_file: .env # This allows us to specify a file containing environment variables to be loaded into the container's environment
+        restart: on-failure # This will restart the container in the case of a failure
+        expose:
+                - "3306"
 ```
 >**[Volumes](https://docs.docker.com/storage/volumes/)** in Docker are a way to persist data generated by and used by Docker containers. They provide a way to share files and directories between containers and between the host machine and containers.
 
@@ -1228,7 +1235,7 @@ volumes:
       o: 'bind'
       device: '~/Desktop/mariadb'
 ```
-**⚠️** I added a section called `args` under the `build` configuration, This section allows us to define build-time variables that can be passed to the Dockerfile during the image build process. A build-time variable that is set during the image build process.
+**⚠** I added a section called `args` under the `build` configuration, This section allows us to define build-time variables that can be passed to the Dockerfile during the image build process. A build-time variable that is set during the image build process.
 but what's the point of using that if we already have a file called `.env`?
 for our container to be alive, there essentially two phases, during the first phase the image is built, and during the second the container actually gets run, let's have a little look,
 ##### **Build Time phase**: (`docker-compose build`)
@@ -1307,30 +1314,32 @@ YELLOW='\033[0;33m'
 CURSIVE='\033[3m'
 ```
 Since the subject doesn't specify anything about the Makefile, you can pretty much add what ever makes your life easier, of course while respecting the subject's rules, in my case I added some rules to create the volumes and add our domain to the hosts file, also a rule to clean everything, and rules to stop and start the containers.
->**⚠️** Don't forget to change the **sever_name** in Nginx's configuration to `login.42.fr`
+>**⚠** Don't forget to change the **sever_name** in Nginx's configuration to `login.42.fr`
 >also add the location for php files
 
 Now we will modify the Wordpress configuration script, this step is optional but I advise you to do it, we are simply going to prevent wordpress's CLI from re-configuring the `wp-config.php` file if it is already configured, to do that we'll simply check if it's already there,
 ```bash
 if [ ! -f "/var/www/wordpress/wp-config.php" ]; then
-	mv /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
-	wp config set DB_NAME $MYSQL_DATABASE --allow-root --path=/var/www/wordpress/
-	wp config set DB_USER $MYSQL_USER --allow-root --path=/var/www/wordpress/
-	wp config set DB_PASSWORD $MYSQL_PASSWORD --allow-root --path=/var/www/wordpress/
-	wp config set DB_HOST mariadb:3306 --allow-root --path=/var/www/wordpress/
+        mv /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
+        wp config set DB_NAME $MYSQL_DATABASE --allow-root --path=/var/www/wordpress/
+        wp config set DB_USER $MYSQL_USER --allow-root --path=/var/www/wordpress/
+        wp config set DB_PASSWORD $MYSQL_PASSWORD --allow-root --path=/var/www/wordpress/
+        wp config set DB_HOST mariadb:3306 --allow-root --path=/var/www/wordpress/
 fi
 ```
 
 ![mission accomplished](https://media.giphy.com/media/8UF0EXzsc0Ckg/giphy.gif?cid=790b7611a9bdayuyp2l9z8fqr1vg0256pijoa0tod5ib60j8&ep=v1_gifs_search&rid=giphy.gif&ct=g)
 
-We are officially done with the mandatory part of project and now you can test your small infrastructure by simply running the containers and searching for `https://login.42.fr` in the browser, and a page from wordpress should be displayed.
->**⚠️⚠️⚠️** DON'T FORGET TO REMOVE THE `.env` FROM THE REPOSITORY.
+We are officially done with the mandatory part of the project and now you can test your small infrastructure by simply running the containers and searching for `https://login.42.fr` in the browser, and a page from WordPress should be displayed.
+>**⚠⚠⚠** DON'T FORGET TO REMOVE THE `.env` FROM THE REPOSITORY.
 # Acknowledgement:
+While Docker plays a pivotal role in Inception, it's essential to acknowledge that its implementation only scratches the surface of containerization technology. and this article only gives you the bare minimums to start tackling the project and **not fully understand docker or containerization**, so I highly advise you to dig more about containerization and docker as it encompasses a wide array of concepts that merit deeper exploration.
+Best of luck !!!
 # Resources:
+* [NGINX SSL Configuration](https://ubiq.co/tech-blog/nginx-ssl-configuration-step-step-details/)
 - [Configuring MariaDB with Option Files](https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#default-option-file-locations)
 - [Enable Remote access to MariaDB/MySQL database](https://webdock.io/en/docs/how-guides/database-guides/remote-access-your-mariadb-mysql-database-ubuntu-focal-mariadb-v106)
 - [Create MariaDB User and Grant Privileges](https://phoenixnap.com/kb/how-to-create-mariadb-user-grant-privileges)
 - [Installing and using WP-CLI](https://www.hostinger.fr/tutoriels/wp-cli#Les_principes_de_base_des_commandes_de_WP-CLI) 
 - [Syntax for environment files in Docker Compose](https://docs.docker.com/compose/environment-variables/env-file/)
 <p align="right">(<a href="#top">back to top</a>)</p>
-
